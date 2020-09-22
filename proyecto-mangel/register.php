@@ -38,34 +38,43 @@ if (isset($_POST['nombres']) && isset($_POST['email']) && isset($_POST['password
     $msg.='La contraseña debe tener mínimo 8 caracteres <br>';
   } else {
 
-    $mysqli = mysqli_connect("localhost","root","","clase_fray");
+    try {
 
-    if ($mysqli==false) {
-      echo 'Error al conectar con la base de datos';
-      die(); // terminar los procesos PHP
-    }
+      $connection_bd = new PDO('mysql:host=localhost; dbname=clase_fray', 'root', '');
+      $connection_bd -> setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+      $connection_bd -> exec('SET CHARACTER SET utf8');
 
-    $query_users = "SELECT * FROM `usuarios` WHERE `usuarios_email`= '".$email."' ";
+      $sql_users = "SELECT * FROM usuarios WHERE usuarios_email=?";
 
-    $resultado = $mysqli->query($query_users);
-    $usuarios = $resultado->fetch_all(MYSQLI_ASSOC);
+      $resultado_query = $connection_bd->prepare($sql_users);
 
-    $cantidad_usuarios = count($usuarios);
+      $resultado_query -> execute(array($email));
 
-    if ($cantidad_usuarios == 0) {
-      $password = sha1($password);
+      $resultado_query = $resultado_query->fetchAll(PDO:: FETCH_ASSOC);
 
-      $insert_usuario = "INSERT INTO `usuarios`(`usuarios_nombres`, `usuarios_email`, `usuarios_password`) VALUES ('".$nombre."','".$email."', '".$password."')";
-    
-      $mysqli->query($insert_usuario);
+      $cantidad_usuarios = count($resultado_query);
 
-      $msg.='Usuario registrado correctamente! <br>';
-    } else {
-      $msg.='El email ya se encuentra registrado! <br>';
+      if ($cantidad_usuarios == 0) {
+        $password = sha1($password);
+
+        $sql_insert_usuario = "INSERT INTO usuarios(usuarios_nombres, usuarios_email, usuarios_password) VALUES (?, ?, ?)";
+      
+        $resultado_insert = $connection_bd->prepare($sql_insert_usuario);
+
+        $resultado_insert->execute(array($nombre, $email, $password));
+
+        $msg.='Usuario registrado correctamente! <br>';
+      } else {
+        $msg.='El email ya se encuentra registrado! <br>';
+      }
+
+    } catch (Exception $e) {
+      die('Error: '.$e->GetMessage());
+    } finally {
+      $connection_bd = null;
     }
 
   }
-
 }
 
 ?>

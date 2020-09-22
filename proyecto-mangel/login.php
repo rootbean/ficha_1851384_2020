@@ -20,33 +20,36 @@ if (isset($_POST['email']) && isset($_POST['password'])) {
   $email = strip_tags($_POST['email']);
   $password = strip_tags($_POST['password']);
 
-  $mysqli = mysqli_connect("localhost","root","","clase_fray");
 
-  if ($mysqli==false) {
-    echo 'Error al conectar con la base de datos';
-    die(); // terminar los procesos PHP
-  }
+  try {
 
-  $password = sha1($password);
+    $password = sha1($password);
 
-  $query_users = "SELECT * FROM `usuarios` WHERE `usuarios_email`= '".$email."' AND `usuarios_password`= '".$password."'  ";
+    $connection_bd = new PDO('mysql:host=localhost; dbname=clase_fray', 'root', '');
+    $connection_bd -> setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $connection_bd -> exec('SET CHARACTER SET utf8');
 
-  $resultado = $mysqli->query($query_users);
+    $sql_users = "SELECT * FROM usuarios WHERE usuarios_email=? AND usuarios_password=?";
 
-  $usuarios = $resultado->fetch_all(MYSQLI_ASSOC);
+    $resultado_query = $connection_bd->prepare($sql_users);
 
-  $cantidad_usuarios = count($usuarios);
+    $resultado_query -> execute(array($email, $password));
 
-  echo $cantidad_usuarios;
+    $resultado_query = $resultado_query->fetchAll(PDO:: FETCH_ASSOC);
 
-  if ($cantidad_usuarios == 1) {
+    $cantidad_usuarios = count($resultado_query);
 
-    $_SESSION['autorizado']=true;
+    if ($cantidad_usuarios == 1) {
 
-    echo '<meta http-equiv="refresh" content="1,starter.php">';
+      $_SESSION['autorizado']=true;
+  
+      echo '<meta http-equiv="refresh" content="1,starter.php">';
+    }
 
-
-    
+  } catch (Exception $e) {
+    die('Error: '.$e->GetMessage());
+  } finally {
+    $connection_bd = null;
   }
 
 }
