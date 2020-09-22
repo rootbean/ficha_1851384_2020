@@ -1,4 +1,12 @@
 <?php
+session_start();
+
+$autorizado = $_SESSION['autorizado'];
+$id_user = $_SESSION['id_user'];
+
+if ($autorizado==false) {
+  echo '<meta http-equiv="refresh" content="0,login.php">';
+}
 
 include_once('funciones.php');
 
@@ -6,7 +14,24 @@ if($_FILES) {
 
   $avatar =$_FILES['avatar'];
   
-  upload_image($avatar);
+  $url_image = upload_image($avatar);
+
+  if ($url_image == null) {
+    echo 'No se subió la imagen';
+  } else {
+    $connection_bd = new PDO('mysql:host=localhost; dbname=clase_fray', 'root', '');
+    $connection_bd -> setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $connection_bd -> exec('SET CHARACTER SET utf8');
+
+    $sql_users = "UPDATE usuarios SET usuarios_avatar=? WHERE usuarios_id = ?";
+
+    $resultado_query = $connection_bd->prepare($sql_users);
+
+    $resultado_query -> execute(array($url_image, $id_user));
+
+    echo 'Usuario actualizado';
+    
+  }
 
 }
 

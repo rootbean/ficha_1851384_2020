@@ -28,11 +28,13 @@ function upload_image($archivo) {
 
     if ($validacion_ok == 0) {
         echo 'La imagen no se puede subir';
+        return null;
     } else {
         if (move_uploaded_file($archivo['tmp_name'], $url_final)) {
-            echo 'La imagen subida correctamente!';
+            return $url_final;
         } else {
             echo 'Hubo un error al subir la imagen';
+            return null;
         }
     }
 

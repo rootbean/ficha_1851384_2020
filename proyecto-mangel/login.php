@@ -41,9 +41,13 @@ if (isset($_POST['email']) && isset($_POST['password'])) {
 
     if ($cantidad_usuarios == 1) {
 
+      $id_user = $resultado_query[0]['usuarios_id'];
+
       $_SESSION['autorizado']=true;
+      $_SESSION['id_user']= $id_user;
+
   
-      echo '<meta http-equiv="refresh" content="1,starter.php">';
+      // echo '<meta http-equiv="refresh" content="1,starter.php">';
     }
 
   } catch (Exception $e) {
